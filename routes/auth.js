@@ -4,13 +4,13 @@ import jwt from "jsonwebtoken";
 import UserInfo from "../models/UserInfo.js";
 const router = Router();
 
-const SECRET_KEY="key"
-const TIMER=2000;
+const SECRET_KEY = "key";
+const TIMER = 2000;
 
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    if (!username ||!email ||!password) {
+    if (!username || !email || !password) {
       return res.status(400).json({ error: "Missing required fields" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -18,10 +18,10 @@ router.post("/register", async (req, res) => {
     await user.save();
     const token = jwt.sign({ userId: user._id }, SECRET_KEY);
     setTimeout(() => {
-      res.json({ token,user,message:"success"});
+      res.json({ token, user, message: "success" });
     }, TIMER);
   } catch (error) {
-    if(error.errorResponse?.errmsg?.includes("duplicate")){
+    if (error.errorResponse?.errmsg?.includes("duplicate")) {
       return setTimeout(() => {
         res.status(400).json({ error: "User already exists" });
       }, TIMER);
@@ -35,7 +35,7 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
-    if (!username ||!password) {
+    if (!username || !password) {
       return setTimeout(() => {
         res.status(400).json({ error: "Missing required fields" });
       }, TIMER);
@@ -54,7 +54,7 @@ router.post("/login", async (req, res) => {
     }
     const token = jwt.sign({ userId: user._id }, SECRET_KEY);
     setTimeout(() => {
-      res.json({ token,user,message:"success" });
+      res.json({ token, user, message: "success" });
     }, TIMER);
   } catch (error) {
     setTimeout(() => {
@@ -63,9 +63,8 @@ router.post("/login", async (req, res) => {
   }
 });
 
-
-router.get('/user', async (req, res)=>{
-  const token = req.headers.authorization.split(' ')[1];
+router.get("/user", async (req, res) => {
+  const token = req.headers.authorization.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
@@ -73,17 +72,29 @@ router.get('/user', async (req, res)=>{
 
     if (!user) {
       return setTimeout(() => {
-        res.status(401).json({ error: 'User not found' });
+        res.status(401).json({ error: "User not found" });
       }, TIMER);
     }
     setTimeout(() => {
       res.json({ user });
     }, TIMER);
   } catch (error) {
-     setTimeout(() => {
-      res.status(401).json({ error: 'Invalid token' });
+    setTimeout(() => {
+      res.status(401).json({ error: "Invalid token" });
     }, TIMER);
   }
 });
 
+router.get("/userinfo", async (req, res) => {
+  try {
+    const user = await UserInfo.findById("6739a2430d0d37cdad7d2510");
+    if (user) {
+      return res.status(200).json({ data: user });
+    } else {
+      return res.status(401).json({ data: "User Not found" });
+    }
+  } catch {
+    res.status(500).json({ data: "Internal server error" });
+  }
+});
 export default router;
